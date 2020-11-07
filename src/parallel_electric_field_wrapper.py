@@ -1,7 +1,7 @@
 """
 Parallel implementation of ElectricFieldWrapper.
 """
-from math import sqrt, log10
+from math import acos, cos, fabs, log10, pi, sqrt
 from time import time
 
 from electrostatics import LineCharge, PointCharge, PointChargeFlatland
@@ -129,18 +129,57 @@ def _calculate_charges_electric_field_vectors(partial, x, y, charges):
     if i >= partial.shape[0] or j >= partial.shape[1] or k >= partial.shape[2]:
         return
 
+    xp, yp = x[i][j], y[i][j]
     charge_type, q, x0, y0 = charges[k][0], charges[k][1], charges[k][2], charges[k][3]
 
+    # PointChargeFlatland or PointCharge
     if charge_type == 0 or charge_type == 1:
-        dx = x[i][j] - x0
-        dy = y[i][j] - y0
+        dx, dy = xp - x0, yp - y0
         b = dx**2 + dy**2 if charge_type == 0 else (dx**2 + dy**2)**1.5
         partial[i][j][k][0] = q * dx / b
         partial[i][j][k][1] = q * dy / b
+
+    # LineCharge
     if charge_type == 2:
         x1 = charges[k][4]
         y1 = charges[k][5]
         lam = charges[k][6]
+
+        # angle(p, v0, v1)
+        dx_0p, dy_0p = x0 - xp, y0 - yp
+        dx_01, dy_01 = x0 - x1, y0 - y1
+        norm_0p = sqrt(dx_0p**2 + dy_0p**2)
+        norm_01 = sqrt(dx_01**2 + dy_01**2)
+        dot = dx_0p*dx_01 + dy_0p*dy_01
+        theta_p01 = acos(dot/(norm_0p*norm_01))
+
+        # angle(p, v1, v0)
+        dx_1p, dy_1p = x1 - xp, y1 - yp
+        dx_10, dy_10 = x1 - x0, y1 - y0
+        norm_1p = sqrt(dx_1p**2 + dy_1p**2)
+        norm_10 = sqrt(dx_10**2 + dy_10**2)
+        dot = dx_1p*dx_10 + dy_1p*dy_10
+        theta_p10 = pi - acos(dot/(norm_1p*norm_10))
+
+        # point_line_distance(p, v0, v1)
+        dx_p0, dy_p0 = xp - x0, yp - y0
+        dx_p1, dy_p1 = xp - x1, yp - y1
+        cross_p01 = dx_p0*dy_p1 - dy_p0*dx_p1
+        point_line_distance_p01 = fabs(cross_p01)/norm_10
+
+        # Calculate the parallel and perpendicular components
+        sign = 1 if dx_0p*dy_1p - dx_1p*dy_0p > 0 else -1
+
+        # pylint: disable=invalid-name, invalid-unary-operand-type
+        Epara = lam*(1/norm_1p - 1/norm_0p)
+        Eperp = -sign*lam*(cos(theta_p10) - cos(theta_p01))/point_line_distance_p01 \
+            if point_line_distance_p01 != 0 else 0
+
+        # Transform into the coordinate space and return
+        ux_10, uy_10 = dx_10/norm_10, dy_10/norm_10
+        partial[i][j][k][0] = Epara*ux_10 - Eperp*uy_10
+        partial[i][j][k][1] = Eperp*ux_10 + Epara*uy_10
+
 
 
 @cuda.jit('void(float32[:,:,:,:], float32[:,:])')

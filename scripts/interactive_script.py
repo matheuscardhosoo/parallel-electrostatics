@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.abspath('../src/'))
 
 from matplotlib import pyplot
-from electrostatics import PointChargeFlatland, ElectricField, finalize_plot, init
+from electrostatics import LineCharge, PointChargeFlatland, ElectricField, finalize_plot, init
 from electric_field_wrapper import ElectricFieldWrapper
 from parallel_electric_field_wrapper import ParallelElectricFieldWrapper
 from helper.config_option import ConfigOption
@@ -14,7 +14,8 @@ config = ConfigOption(x_min=-40, x_max=40, x_offset=2, y_min=-30, y_max=30, y_of
                       elements_between_limits=200)
 charges = [PointChargeFlatland(2, [0, 0]),
            PointChargeFlatland(-1, [2, 1]),
-           PointChargeFlatland(1, [4, 0])]
+           PointChargeFlatland(1, [4, 0]),
+           LineCharge(1, [-1, -2], [-1, 2])]
 
 # %%
 # Original version
