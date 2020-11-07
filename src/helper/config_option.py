@@ -3,7 +3,7 @@ Class to abstract the lib configuration parameters.
 """
 import json
 
-import numpy as np
+from numpy import float32, linspace
 
 
 class ConfigOption():
@@ -37,8 +37,8 @@ class ConfigOption():
     @property
     def x_axis(self):
         """X axis array."""
-        return np.linspace(
-            self.fixed_x_min, self.fixed_x_max, self.elements_between_limits, dtype=np.float32)
+        return linspace(
+            self.fixed_x_min, self.fixed_x_max, self.elements_between_limits, dtype=float32)
 
     @property
     def y_min(self):
@@ -58,8 +58,8 @@ class ConfigOption():
     @property
     def y_axis(self):
         """Y axis array."""
-        return np.linspace(
-            self.fixed_y_min, self.fixed_y_max, self.elements_between_limits, dtype=np.float32)
+        return linspace(
+            self.fixed_y_min, self.fixed_y_max, self.elements_between_limits, dtype=float32)
 
     @property
     def zoom(self):

@@ -4,12 +4,13 @@ Interface for electric field in Thomas J. Duck lib.
 It condense the ElectricField inside of a single class that use the lib to generate
 simulation values. 
 """
-import time
+from time import time
 
-import numpy as np
-import electrostatics as es
+from numpy import float32, meshgrid, zeros
+from numpy import log10, sum
+from electrostatics import norm
 
-from .drawer import Drawer
+from helper.drawer import Drawer
 
 
 class ElectricFieldWrapper():
@@ -57,17 +58,17 @@ class ElectricFieldWrapper():
             float: total execution time.
             list: execution time of each step.
         """
-        start_time = time.time()
+        start_time = time()
         partial, result, x, y = self._create_work_space()
-        time_0 = time.time() - start_time
+        time_0 = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
         self._calculate_charges_electric_field_vectors(partial, x, y, self._charges)
-        time_1 = time.time() - start_time
+        time_1 = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
         self._calculate_electric_field_magnitudes(partial, result)
-        time_2 = time.time() - start_time
+        time_2 = time() - start_time
 
         return {
             'total_time': time_0 + time_1 + time_2,
@@ -82,9 +83,9 @@ class ElectricFieldWrapper():
     def _create_work_space(self):
         x_axis = self._config_option.x_axis
         y_axis = self._config_option.y_axis
-        x, y = np.meshgrid(x_axis, y_axis)
-        result = np.zeros((len(y_axis), len(x_axis)), dtype=np.float32)
-        partial = np.zeros((len(y_axis), len(x_axis), len(self._charges), 2), dtype=np.float32)
+        x, y = meshgrid(x_axis, y_axis)
+        result = zeros((len(y_axis), len(x_axis)), dtype=float32)
+        partial = zeros((len(y_axis), len(x_axis), len(self._charges), 2), dtype=float32)
         return partial, result, x, y
 
     @staticmethod
@@ -100,7 +101,7 @@ class ElectricFieldWrapper():
     def _calculate_electric_field_magnitudes(partial, result):
         for i in range(partial.shape[0]):
             for j in range(partial.shape[1]):
-                electric_field_vector = np.sum(partial[i][j], axis=0)
-                electric_field_magnitude = es.norm(electric_field_vector)
-                normalized_electric_field_magnitude = np.log10(electric_field_magnitude)
+                electric_field_vector = sum(partial[i][j], axis=0)
+                electric_field_magnitude = norm(electric_field_vector)
+                normalized_electric_field_magnitude = log10(electric_field_magnitude)
                 result[i][j] = normalized_electric_field_magnitude

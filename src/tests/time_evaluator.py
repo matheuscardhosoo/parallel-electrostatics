@@ -1,10 +1,9 @@
 import json
 
-import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure, grid, savefig, scatter, title, xlabel, ylabel
 
-from cuda.cuda_helper import cuda_args
-from cuda.parallel_electric_field_wrapper import ParallelElectricFieldWrapper
-from wrapper.electric_field_wrapper import ElectricFieldWrapper
+from electric_field_wrapper import ElectricFieldWrapper
+from parallel_electric_field_wrapper import ParallelElectricFieldWrapper
 
 
 class TimeEvaluator():
@@ -83,11 +82,11 @@ class TimeEvaluator():
             'Eficiência X Threads per block', 'Tempo', 'Grid X Blocks', 'efficiency_plot.png')
 
     @staticmethod
-    def _generic_plot(x, y, title, y_label, x_label, file_name):
-        plt.figure()
-        plt.scatter(x, y)
-        plt.title(title)
-        plt.ylabel(y_label)
-        plt.xlabel(x_label)
-        plt.grid(True)
-        plt.savefig(file_name)
+    def _generic_plot(x, y, title_value, y_label, x_label, file_name):
+        figure()
+        scatter(x, y)
+        title(title_value)
+        ylabel(y_label)
+        xlabel(x_label)
+        grid(True)
+        savefig(file_name)

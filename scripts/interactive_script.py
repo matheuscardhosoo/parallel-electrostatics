@@ -1,12 +1,14 @@
 # %%
-from matplotlib import pyplot
-import electrostatics
-from electrostatics import PointChargeFlatland, ElectricField, GaussianCircle
-from electrostatics import finalize_plot
+# Interactive script used to validate the solutions.
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../src/'))
 
-from cuda.parallel_electric_field_wrapper import ParallelElectricFieldWrapper
-from wrapper.electric_field_wrapper import ElectricFieldWrapper
-from wrapper.config_option import ConfigOption
+from matplotlib import pyplot
+from electrostatics import PointChargeFlatland, ElectricField, finalize_plot, init
+from electric_field_wrapper import ElectricFieldWrapper
+from parallel_electric_field_wrapper import ParallelElectricFieldWrapper
+from helper.config_option import ConfigOption
 
 config = ConfigOption(x_min=-40, x_max=40, x_offset=2, y_min=-30, y_max=30, y_offset=0, zoom=6,
                       elements_between_limits=200)
@@ -20,7 +22,7 @@ XMIN, XMAX = -40, 40
 YMIN, YMAX = -30, 30
 ZOOM = 6
 XOFFSET = 2
-electrostatics.init(XMIN, XMAX, YMIN, YMAX, ZOOM, XOFFSET)
+init(XMIN, XMAX, YMIN, YMAX, ZOOM, XOFFSET)
 field = ElectricField(charges)
 f = pyplot.figure(figsize=(6, 4.5))
 field.plot(-1.7, 0.8)

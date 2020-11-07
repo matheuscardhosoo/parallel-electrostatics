@@ -1,15 +1,15 @@
 """
 Parallel implementation of ElectricFieldWrapper.
 """
-import time
 from math import sqrt, log10
-from numba import vectorize, cuda
+from time import time
 
-import numpy as np
-import electrostatics as es
+from electrostatics import LineCharge, PointCharge, PointChargeFlatland
+from numba import cuda
+from numpy import float32, zeros
 
-from cuda.cuda_helper import cuda_args
-from wrapper.electric_field_wrapper import ElectricFieldWrapper
+from electric_field_wrapper import ElectricFieldWrapper
+from helper.cuda_helper import cuda_args
 
 
 class ParallelElectricFieldWrapper(ElectricFieldWrapper):
@@ -36,9 +36,9 @@ class ParallelElectricFieldWrapper(ElectricFieldWrapper):
         """
         sequential_algorithm_time = kwargs['sequential_time']
 
-        start_time = time.time()
+        start_time = time()
         partial, result, x, y = self._create_work_space()
-        sequential_time_0 = time.time() - start_time
+        sequential_time_0 = time() - start_time
 
         sequential_time_1, parallel_time_1 = self._calculate_charges_electric_field_vectors(
             partial, x, y, self._charges)
@@ -66,51 +66,53 @@ class ParallelElectricFieldWrapper(ElectricFieldWrapper):
         }
 
     def _calculate_charges_electric_field_vectors(self, partial, x, y, charges):
-        start_time = time.time()
+        start_time = time()
         grid, block = cuda_args(partial, 3, self.number_of_cores)
         device_partial = cuda.to_device(partial)
         device_x = cuda.to_device(x)
         device_y = cuda.to_device(y)
         device_charges = cuda.to_device(self._charges_array)
-        sequential_time = time.time() - start_time
+        sequential_time = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
+        # pylint: disable=E1136  # pylint/issues/3139
         _calculate_charges_electric_field_vectors[grid, block](
             device_partial, device_x, device_y, device_charges)
-        parallel_time = time.time() - start_time
+        parallel_time = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
         device_partial.copy_to_host(partial)
-        sequential_time += time.time() - start_time
+        sequential_time += time() - start_time
         return sequential_time, parallel_time
 
     def _calculate_electric_field_magnitudes(self, partial, result):
-        start_time = time.time()
+        start_time = time()
         grid, block = cuda_args(result, 2, self.number_of_cores)
         device_partial = cuda.to_device(partial)
         device_result = cuda.to_device(result)
-        sequential_time = time.time() - start_time
+        sequential_time = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
+        # pylint: disable=E1136  # pylint/issues/3139
         _calculate_electric_field_magnitudes[grid, block](device_partial, device_result)
-        parallel_time = time.time() - start_time
+        parallel_time = time() - start_time
 
-        start_time = time.time()
+        start_time = time()
         device_result.copy_to_host(result)
-        sequential_time += time.time() - start_time
+        sequential_time += time() - start_time
         return sequential_time, parallel_time
 
     @staticmethod
     def _charges_to_array(charges):
-        chagres_array = np.zeros((len(charges), 7), dtype=np.float32)
+        chagres_array = zeros((len(charges), 7), dtype=float32)
         for i, charge in enumerate(charges):
-            if isinstance(charge, es.PointCharge) or isinstance(charge, es.PointChargeFlatland):
-                chagres_array[i][0] = 0 if isinstance(charge, es.PointChargeFlatland) else 1
+            if isinstance(charge, PointCharge) or isinstance(charge, PointChargeFlatland):
+                chagres_array[i][0] = 0 if isinstance(charge, PointChargeFlatland) else 1
                 chagres_array[i][1] = charge.q
                 chagres_array[i][2] = charge.x[0]
                 chagres_array[i][3] = charge.x[1]
                 chagres_array[i][4], chagres_array[i][5], chagres_array[i][6] = 0, 0, 0
-            if isinstance(charge, es.LineCharge):
+            if isinstance(charge, LineCharge):
                 chagres_array[i][0] = 2
                 chagres_array[i][1] = charge.q
                 chagres_array[i][2] = charge.x1[0]
