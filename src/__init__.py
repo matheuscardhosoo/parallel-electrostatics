@@ -1,8 +1,8 @@
 """Root"""
-from .electric_field_wrapper import ElectricFieldWrapper
-from .parallel_electric_field_wrapper import ParallelElectricFieldWrapper
+from .sequential_electric_field import SequentialElectricField
+from .parallel_electric_field import ParallelElectricField
 
 __all__ = [
-    'ElectricFieldWrapper',
-    'ParallelElectricFieldWrapper',
+    'SequentialElectricField',
+    'ParallelElectricField',
 ]

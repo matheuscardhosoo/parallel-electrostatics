@@ -2,15 +2,15 @@ import json
 
 from matplotlib.pyplot import figure, grid, savefig, scatter, title, xlabel, ylabel
 
-from electric_field_wrapper import ElectricFieldWrapper
-from parallel_electric_field_wrapper import ParallelElectricFieldWrapper
+from src.sequential_electric_field import SequentialElectricField
+from src.parallel_electric_field import ParallelElectricField
 
 
 class TimeEvaluator():
 
     def __init__(self, config_option, charges):
-        self._electric_field = ElectricFieldWrapper(config_option, charges)
-        self._parallel_electric_field = ParallelElectricFieldWrapper(config_option, charges)
+        self._electric_field = SequentialElectricField(config_option, charges)
+        self._parallel_electric_field = ParallelElectricField(config_option, charges)
         # To discard the compilation time.
         self._parallel_electric_field.time_it(sequential_time=0)
 
@@ -70,16 +70,20 @@ class TimeEvaluator():
 
     @staticmethod
     def plot(report):
-        print(report['sequential_time'])
         x = [f'A{n}' for n in range(11)]
+
         TimeEvaluator._generic_plot(
             ['S'] + x, [report['sequential_time']] + report['parallel_time'],
             'Tempo de execução X Threads per block', 'Tempo', 'Grid X Blocks', 'time_plot.png')
+
         TimeEvaluator._generic_plot(x, report['parallel_speedup'], 'Speedup X Threads per block',
                                     'Tempo', 'Grid X Blocks', 'speedup_plot.png')
-        TimeEvaluator._generic_plot(
-            x, report['parallel_efficiency'],
-            'Eficiência X Threads per block', 'Tempo', 'Grid X Blocks', 'efficiency_plot.png')
+
+        # I didn't find a way to limit the number of cores used by GPU. So, I can't calculate the 
+        # efficiency of parallel execution.
+        # TimeEvaluator._generic_plot(
+        #     x, report['parallel_efficiency'],
+        #     'Eficiência X Threads per block', 'Tempo', 'Grid X Blocks', 'efficiency_plot.png')
 
     @staticmethod
     def _generic_plot(x, y, title_value, y_label, x_label, file_name):

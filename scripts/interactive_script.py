@@ -1,14 +1,19 @@
+"""
+Interactive script used to validate the solutions.
+You can execute this as a Jupyter Notebook using VSCode Data Science extension.
+"""
 # %%
-# Interactive script used to validate the solutions.
+# Imports
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src/'))
+sys.path.insert(0, os.path.abspath('../'))
 
 from matplotlib import pyplot
-from electrostatics import LineCharge, PointChargeFlatland, ElectricField, finalize_plot, init
-from electric_field_wrapper import ElectricFieldWrapper
-from parallel_electric_field_wrapper import ParallelElectricFieldWrapper
-from helper.config_option import ConfigOption
+from electrostatics import LineCharge, PointCharge, PointChargeFlatland
+from electrostatics import ElectricField, finalize_plot, init
+from src.sequential_electric_field import SequentialElectricField
+from src.parallel_electric_field import ParallelElectricField
+from src.helper.config_option import ConfigOption
 
 config = ConfigOption(x_min=-40, x_max=40, x_offset=2, y_min=-30, y_max=30, y_offset=0, zoom=6,
                       elements_between_limits=200)
@@ -34,14 +39,14 @@ pyplot.savefig('image.png')
 
 # %%
 # Sequential version
-electric_field = ElectricFieldWrapper(config, charges)
+electric_field = SequentialElectricField(config, charges)
 electric_field.draw(n_min=-1.7, n_max=0.8, n_step=0.2)
 # electric_field.time_it()
 # electric_field.calculate()
 
 # %%
 # Parallel version
-electric_field = ParallelElectricFieldWrapper(config, charges, 16)
+electric_field = ParallelElectricField(config, charges, 16)
 electric_field.draw(n_min=-1.7, n_max=0.8, n_step=0.2)
 # electric_field.time_it()
 # electric_field.calculate()

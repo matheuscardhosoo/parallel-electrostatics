@@ -109,6 +109,9 @@ class ConfigOption():
         elements_between_limits_str = f'Elements between units: {self.elements_between_limits}'
         return f'\n {x_str}\n {y_str}\n {zoom_str}\n {elements_between_limits_str} \n'
 
+    def to_original_electrostatic_lib(self):
+        return self.x_min, self.x_max, self.y_min, self.y_max, self.zoom, self.x_offset
+
     @classmethod
     def from_dict(cls, configs_as_dict):
         """Create a ConfigOption object based on a dict."""

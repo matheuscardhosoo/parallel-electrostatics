@@ -1,5 +1,5 @@
 """
-Parallel implementation of ElectricFieldWrapper.
+Parallel implementation of SequentialElectricField.
 """
 from math import acos, cos, fabs, log10, pi, sqrt
 from time import time
@@ -8,13 +8,13 @@ from electrostatics import LineCharge, PointCharge, PointChargeFlatland
 from numba import cuda
 from numpy import float32, zeros
 
-from electric_field_wrapper import ElectricFieldWrapper
-from helper.cuda_helper import cuda_args
+from src.sequential_electric_field import SequentialElectricField
+from src.helper.cuda_helper import cuda_args
 
 
-class ParallelElectricFieldWrapper(ElectricFieldWrapper):
+class ParallelElectricField(SequentialElectricField):
     """
-    Parallel implementation of ElectricFieldWrapper.
+    Parallel implementation of SequentialElectricField.
     Args:
         config_option(object): ConfigOption object with the configuration values.
         charges(list): electric charges that generate the Electric Field.
@@ -168,9 +168,8 @@ def _calculate_charges_electric_field_vectors(partial, x, y, charges):
         point_line_distance_p01 = fabs(cross_p01)/norm_10
 
         # Calculate the parallel and perpendicular components
-        sign = 1 if dx_0p*dy_1p - dx_1p*dy_0p > 0 else -1
-
         # pylint: disable=invalid-name, invalid-unary-operand-type
+        sign = 1 if dx_0p*dy_1p - dx_1p*dy_0p > 0 else -1
         Epara = lam*(1/norm_1p - 1/norm_0p)
         Eperp = -sign*lam*(cos(theta_p10) - cos(theta_p01))/point_line_distance_p01 \
             if point_line_distance_p01 != 0 else 0
