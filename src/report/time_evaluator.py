@@ -45,18 +45,18 @@ class TimeEvaluator():
         while number_of_cores <= max_number_of_cores:
             time = 0
             speedup = 0
-            efficiency = 0
+            # efficiency = 0
             samples = []
             for _ in range(times):
                 self._parallel_electric_field.number_of_cores = number_of_cores
                 sample = self._parallel_electric_field.time_it(sequential_time=sequential_time)
                 time += sample['total_time']/times
                 speedup += sample['speedup']/times
-                efficiency += sample['efficiency']/times
+                # efficiency += sample['efficiency']/times
                 samples.append(sample)
             partial_report['parallel_time'].append(time)
             partial_report['parallel_speedup'].append(speedup)
-            partial_report['parallel_efficiency'].append(efficiency)
+            # partial_report['parallel_efficiency'].append(efficiency)
             partial_report['parallel_samples'].append(samples)
             n += 1
             number_of_cores = 2**n

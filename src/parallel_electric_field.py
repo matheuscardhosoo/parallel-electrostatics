@@ -47,9 +47,10 @@ class ParallelElectricField(SequentialElectricField):
 
         sequential_time = sequential_time_0 + sequential_time_1 + sequential_time_2
         parallel_time = parallel_time_1 + parallel_time_2
-        speedup = sequential_algorithm_time/parallel_time
+        total_time = sequential_time + parallel_time
+        speedup = sequential_algorithm_time/total_time
         return {
-            'total_time': sequential_time + parallel_time,
+            'total_time': total_time,
             'speedup': speedup,
             'efficiency': speedup/self.number_of_cores,
             'sequential_time': sequential_time,
